@@ -1,0 +1,4 @@
+Сервис постов
+
+для шардирования выполнить в координаторе
+SELECT create_distributed_table('posts', 'uuid');
