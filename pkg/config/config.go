@@ -17,6 +17,7 @@ type PostgresConfig struct {
 
 type Config struct {
 	Mode     string
+	Port     string
 	Postgres *PostgresConfig
 }
 
@@ -27,6 +28,7 @@ func LoadConfigFromEnv() *Config {
 
 	return &Config{
 		Mode:     os.Getenv("MODE"),
+		Port:     os.Getenv("PORT"),
 		Postgres: &PostgresConfig{
 			Host:     os.Getenv("POSTGRES_HOST"),
 			Port:     os.Getenv("POSTGRES_PORT"),

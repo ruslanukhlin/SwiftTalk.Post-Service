@@ -27,11 +27,11 @@ func main() {
 	postDb := postgres.NewPostgresMemoryRepository(gorm.DB)
 	postApp := application.NewPostApp(postDb)
 
-	runGRPCServer(postApp)
+	runGRPCServer(postApp, cfg.Port)
 }
 
-func runGRPCServer(postApp *application.PostApp) {
-	lis, err := net.Listen("tcp", ":50051")
+func runGRPCServer(postApp *application.PostApp, port string) {
+	lis, err := net.Listen("tcp", ":" + port)
 	if err != nil {
 		log.Fatalf("Ошибка запуска сервера: %v", err)
 	}
