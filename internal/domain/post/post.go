@@ -1,4 +1,4 @@
-package domain
+package post
 
 import (
 	"time"
@@ -8,18 +8,28 @@ import (
 
 type Post struct {
 	UUID      string
-	Title     string
-	Content   string
+	Title     Title
+	Content   Content
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-func NewPost(title, content string) *Post {
+func NewPost(title, content string) (*Post, error) {
+	titleValid, err := NewTitle(title)
+	if err != nil {
+		return nil, err
+	}
+
+	contentValid, err := NewContent(content)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Post{
 		UUID:      uuid.New().String(),
-		Title:     title,
-		Content:   content,
+		Title:     *titleValid,
+		Content:   *contentValid,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-	}
+	}, nil
 }

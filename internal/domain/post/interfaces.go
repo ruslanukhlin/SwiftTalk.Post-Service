@@ -1,4 +1,4 @@
-package domain
+package post
 
 type PostService interface {
 	CreatePost(post *Post) error

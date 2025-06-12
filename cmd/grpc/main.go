@@ -27,7 +27,7 @@ func main() {
 	postDb := postgres.NewPostgresMemoryRepository(gorm.DB)
 	postApp := application.NewPostApp(postDb)
 
-	runGRPCServer(postApp, cfg.Port)
+	runGRPCServer(postApp, cfg.PortGrpc)
 }
 
 func runGRPCServer(postApp *application.PostApp, port string) {
@@ -35,6 +35,7 @@ func runGRPCServer(postApp *application.PostApp, port string) {
 	if err != nil {
 		log.Fatalf("Ошибка запуска сервера: %v", err)
 	}
+	defer lis.Close()
 
 	postGRPCHandler := postGRPC.NewPostGRPCHandler(postApp)
 	grpcServer := grpc.NewServer()

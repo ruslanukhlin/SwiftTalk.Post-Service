@@ -10,6 +10,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+var (
+	ErrShortTitle = status.Error(codes.InvalidArgument, "Заголовок слишком короткий (минимум 3 символа)")
+	ErrLongTitle = status.Error(codes.InvalidArgument, "Заголовок слишком длинный (максимум 255 символов)")
+	ErrShortContent = status.Error(codes.InvalidArgument, "Содержание слишком короткое (минимум 3 символа)")
+	ErrLongContent = status.Error(codes.InvalidArgument, "Содержание слишком длинное (максимум 100000 символов)")
+	ErrInternal = status.Error(codes.Internal, "Внутренняя ошибка сервера")
+)
+
 type PostGRPCHandler struct {
 	pb.UnimplementedPostServiceServer
 	postApp *application.PostApp
@@ -22,10 +30,24 @@ func NewPostGRPCHandler(postApp *application.PostApp) *PostGRPCHandler {
 }
 
 func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequest) (*pb.CreatePostResponse, error) {
-	post := domain.NewPost(req.Title, req.Content);
+	post, err := domain.NewPost(req.Title, req.Content)
+	if err != nil {
+		switch err {
+		case domain.ErrShortTitle:
+			return nil, ErrShortTitle
+		case domain.ErrLongTitle:
+			return nil, ErrLongTitle
+		case domain.ErrShortContent:
+			return nil, ErrShortContent
+		case domain.ErrLongContent:
+			return nil, ErrLongContent
+		default:
+			return nil, ErrInternal
+		}
+	}
 
 	if err := h.postApp.CreatePost(post); err != nil {
-		return nil, status.Errorf(codes.Internal, "Ошибка при создании поста: %v", err)
+		return nil, ErrInternal
 	}
 
 	return &pb.CreatePostResponse{}, nil
@@ -35,15 +57,15 @@ func (h *PostGRPCHandler) GetPosts(ctx context.Context, req *pb.GetPostsRequest)
 	posts, err := h.postApp.GetPosts()
 
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Ошибка при получении постов: %v", err)
+		return nil, ErrInternal
 	}
 
 	postsPb := make([]*pb.Post, len(posts))
 	for i, post := range posts {
 		postsPb[i] = &pb.Post{
 			Uuid: post.UUID,
-			Title: post.Title,
-			Content: post.Content,
+			Title: post.Title.Value,
+			Content: post.Content.Value,
 		}
 	}
 
@@ -56,14 +78,14 @@ func (h *PostGRPCHandler) GetPost(ctx context.Context, req *pb.GetPostRequest) (
 	post, err := h.postApp.GetPostByUUID(req.Uuid)
 
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Ошибка при получении поста: %v", err)
+		return nil, ErrInternal
 	}
 
 	return &pb.GetPostResponse{
 		Post: &pb.Post{
 			Uuid: post.UUID,
-			Title: post.Title,
-			Content: post.Content,
+			Title: post.Title.Value,
+			Content: post.Content.Value,
 		},
 	}, nil
 }

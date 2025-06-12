@@ -16,19 +16,19 @@ type PostgresConfig struct {
 }
 
 type Config struct {
-	Mode     string
-	Port     string
-	Postgres *PostgresConfig
+	Mode         string
+	PortGrpc     string
+	PortHttp     string
+	Postgres     *PostgresConfig
 }
 
 func LoadConfigFromEnv() *Config {
 	_ = godotenv.Load(".env.local")
 
-	fmt.Println(os.Getenv("POSTGRES_HOST"))
-
 	return &Config{
 		Mode:     os.Getenv("MODE"),
-		Port:     os.Getenv("PORT"),
+		PortGrpc:     os.Getenv("PORT_GRPC"),
+		PortHttp:     os.Getenv("PORT_HTTP"),
 		Postgres: &PostgresConfig{
 			Host:     os.Getenv("POSTGRES_HOST"),
 			Port:     os.Getenv("POSTGRES_PORT"),

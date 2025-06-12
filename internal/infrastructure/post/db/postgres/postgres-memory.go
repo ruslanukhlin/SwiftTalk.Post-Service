@@ -18,7 +18,15 @@ func NewPostgresMemoryRepository(db *gorm.DB) *PostgresMemoryRepository {
 }
 
 func (r *PostgresMemoryRepository) Save(post *domain.Post) error {
-	return r.db.Create(post).Error
+	var postDb Post
+	
+	postDb.UUID = post.UUID
+	postDb.Title = post.Title.Value
+	postDb.Content = post.Content.Value
+	postDb.CreatedAt = post.CreatedAt
+	postDb.UpdatedAt = post.UpdatedAt
+
+	return r.db.Create(&postDb).Error
 }
 
 func (r *PostgresMemoryRepository) FindAll() ([]*domain.Post, error) {
@@ -31,8 +39,8 @@ func (r *PostgresMemoryRepository) FindAll() ([]*domain.Post, error) {
 	for i, post := range posts {
 		domainPosts[i] = &domain.Post{
 			UUID:      post.UUID,
-			Title:     post.Title,
-			Content:   post.Content,
+			Title:     domain.Title{Value: post.Title},
+			Content:   domain.Content{Value: post.Content},
 			CreatedAt: post.CreatedAt,
 			UpdatedAt: post.UpdatedAt,
 		}
@@ -49,8 +57,8 @@ func (r *PostgresMemoryRepository) FindByUUID(uuid string) (*domain.Post, error)
 
 	return &domain.Post{
 		UUID:      post.UUID,
-		Title:     post.Title,
-		Content:   post.Content,
+		Title:     domain.Title{Value: post.Title},
+		Content:   domain.Content{Value: post.Content},
 		CreatedAt: post.CreatedAt,
 		UpdatedAt: post.UpdatedAt,
 	}, nil
