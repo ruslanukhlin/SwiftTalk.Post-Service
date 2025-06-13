@@ -10,11 +10,12 @@ type Post struct {
 	UUID      string
 	Title     Title
 	Content   Content
+	Images    []string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-func NewPost(title, content string) (*Post, error) {
+func NewPost(title, content string, images []string) (*Post, error) {
 	titleValid, err := NewTitle(title)
 	if err != nil {
 		return nil, err
@@ -29,6 +30,7 @@ func NewPost(title, content string) (*Post, error) {
 		UUID:      uuid.New().String(),
 		Title:     *titleValid,
 		Content:   *contentValid,
+		Images:    images,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}, nil

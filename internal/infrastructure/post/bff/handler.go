@@ -26,14 +26,25 @@ func (h *Handler) GetPosts(c *fiber.Ctx) error {
 }
 
 func (h *Handler) CreatePost(c *fiber.Ctx) error {
-	payload := new(CreatePostPayload)
-	if err := c.BodyParser(payload); err != nil {
+	title := c.FormValue("title")
+	content := c.FormValue("content")
+
+	if title == "" || content == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Неверный формат данных",
 		})
 	}
 
-	err := h.postService.CreatePost(c.Context(), payload)
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Неверный формат данных",
+		})
+	}
+
+	images := form.File["images"]
+
+	err = h.postService.CreatePost(c.Context(), title, content, images)
 	if err != nil {
 		return handleGRPCError(c, err)
 	}

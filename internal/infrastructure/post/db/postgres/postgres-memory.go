@@ -23,6 +23,7 @@ func (r *PostgresMemoryRepository) Save(post *domain.Post) error {
 	postDb.UUID = post.UUID
 	postDb.Title = post.Title.Value
 	postDb.Content = post.Content.Value
+	postDb.Images = post.Images
 	postDb.CreatedAt = post.CreatedAt
 	postDb.UpdatedAt = post.UpdatedAt
 
@@ -41,6 +42,7 @@ func (r *PostgresMemoryRepository) FindAll() ([]*domain.Post, error) {
 			UUID:      post.UUID,
 			Title:     domain.Title{Value: post.Title},
 			Content:   domain.Content{Value: post.Content},
+			Images:    post.Images,
 			CreatedAt: post.CreatedAt,
 			UpdatedAt: post.UpdatedAt,
 		}
@@ -59,6 +61,7 @@ func (r *PostgresMemoryRepository) FindByUUID(uuid string) (*domain.Post, error)
 		UUID:      post.UUID,
 		Title:     domain.Title{Value: post.Title},
 		Content:   domain.Content{Value: post.Content},
+		Images:    post.Images,
 		CreatedAt: post.CreatedAt,
 		UpdatedAt: post.UpdatedAt,
 	}, nil

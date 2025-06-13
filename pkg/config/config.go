@@ -15,18 +15,24 @@ type PostgresConfig struct {
 	DBName   string
 }
 
+type S3Config struct {
+	Bucket string
+	BucketUrl string
+}
+
 type Config struct {
 	Mode         string
 	PortGrpc     string
 	PortHttp     string
 	Postgres     *PostgresConfig
+	S3           *S3Config
 }
 
 func LoadConfigFromEnv() *Config {
 	_ = godotenv.Load(".env.local")
 
 	return &Config{
-		Mode:     os.Getenv("MODE"),
+		Mode:         os.Getenv("MODE"),
 		PortGrpc:     os.Getenv("PORT_GRPC"),
 		PortHttp:     os.Getenv("PORT_HTTP"),
 		Postgres: &PostgresConfig{
@@ -35,6 +41,10 @@ func LoadConfigFromEnv() *Config {
 			User:     os.Getenv("POSTGRES_USER"),
 			Password: os.Getenv("POSTGRES_PASSWORD"),
 			DBName:   os.Getenv("POSTGRES_DB"),
+		},
+		S3: &S3Config{
+			Bucket:    os.Getenv("S3_BUCKET"),
+			BucketUrl: os.Getenv("S3_BUCKET_URL"),
 		},
 	}
 }

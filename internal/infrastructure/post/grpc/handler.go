@@ -2,6 +2,7 @@ package postGRPC
 
 import (
 	"context"
+	"fmt"
 
 	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
 	application "github.com/ruslanukhlin/SwiftTalk.post-service/internal/application/post"
@@ -30,8 +31,7 @@ func NewPostGRPCHandler(postApp *application.PostApp) *PostGRPCHandler {
 }
 
 func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequest) (*pb.CreatePostResponse, error) {
-	post, err := domain.NewPost(req.Title, req.Content)
-	if err != nil {
+	if err := h.postApp.CreatePost(req.Title, req.Content, req.Images); err != nil {
 		switch err {
 		case domain.ErrShortTitle:
 			return nil, ErrShortTitle
@@ -42,12 +42,9 @@ func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequ
 		case domain.ErrLongContent:
 			return nil, ErrLongContent
 		default:
+			fmt.Println(err)
 			return nil, ErrInternal
 		}
-	}
-
-	if err := h.postApp.CreatePost(post); err != nil {
-		return nil, ErrInternal
 	}
 
 	return &pb.CreatePostResponse{}, nil
@@ -66,6 +63,7 @@ func (h *PostGRPCHandler) GetPosts(ctx context.Context, req *pb.GetPostsRequest)
 			Uuid: post.UUID,
 			Title: post.Title.Value,
 			Content: post.Content.Value,
+			Images: post.Images,
 		}
 	}
 

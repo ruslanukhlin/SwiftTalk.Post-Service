@@ -1,7 +1,7 @@
 package post
 
 type PostService interface {
-	CreatePost(post *Post) error
+	CreatePost(title, content string, images [][]byte) error
 	GetPosts() ([]*Post, error)
 	GetPostByUUID(uuid string) (*Post, error)
 	UpdatePost(post *Post) error

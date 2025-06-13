@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 
+	s3 "github.com/ruslanukhlin/SwiftTalk.common/core/s3"
 	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
 	application "github.com/ruslanukhlin/SwiftTalk.post-service/internal/application/post"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/infrastructure/post/db/postgres"
@@ -25,7 +27,11 @@ func main() {
 	}
 
 	postDb := postgres.NewPostgresMemoryRepository(gorm.DB)
-	postApp := application.NewPostApp(postDb)
+	s3Client, err := s3.NewS3(context.Background(), cfg.S3.Bucket)
+	if err != nil {
+		log.Fatalf("Ошибка инициализации s3: %v", err)
+	}
+	postApp := application.NewPostApp(postDb, s3Client, cfg)
 
 	runGRPCServer(postApp, cfg.PortGrpc)
 }
