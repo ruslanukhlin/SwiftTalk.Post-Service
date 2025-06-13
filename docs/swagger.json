@@ -1,0 +1,152 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API сервиса постов для платформы SwiftTalk",
+        "title": "SwiftTalk Post Service API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/postService/",
+    "paths": {
+        "/post": {
+            "get": {
+                "description": "Получить список всех постов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "Получить список постов",
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ с списком постов",
+                        "schema": {
+                            "$ref": "#/definitions/bff.PostsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка запроса",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Создать новый пост с заголовком, содержанием и опциональными изображениями",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "Создать новый пост",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Заголовок поста",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Содержание поста",
+                        "name": "content",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Изображения (множественная загрузка)",
+                        "name": "images",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешное создание поста",
+                        "schema": {
+                            "$ref": "#/definitions/bff.CreatePostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в параметрах запроса",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "bff.CreatePostResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "bff.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "bff.Post": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "bff.PostsResponse": {
+            "type": "object",
+            "properties": {
+                "posts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/bff.Post"
+                    }
+                }
+            }
+        }
+    }
+}

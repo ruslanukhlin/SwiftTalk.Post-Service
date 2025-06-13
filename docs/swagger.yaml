@@ -1,0 +1,100 @@
+basePath: /postService/
+definitions:
+  bff.CreatePostResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  bff.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  bff.Post:
+    properties:
+      content:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      uuid:
+        type: string
+    type: object
+  bff.PostsResponse:
+    properties:
+      posts:
+        items:
+          $ref: '#/definitions/bff.Post'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API сервиса постов для платформы SwiftTalk
+  title: SwiftTalk Post Service API
+  version: "1.0"
+paths:
+  /post:
+    get:
+      consumes:
+      - application/json
+      description: Получить список всех постов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ с списком постов
+          schema:
+            $ref: '#/definitions/bff.PostsResponse'
+        "400":
+          description: Ошибка запроса
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+      summary: Получить список постов
+      tags:
+      - posts
+    post:
+      consumes:
+      - multipart/form-data
+      description: Создать новый пост с заголовком, содержанием и опциональными изображениями
+      parameters:
+      - description: Заголовок поста
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Содержание поста
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: Изображения (множественная загрузка)
+        in: formData
+        name: images
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное создание поста
+          schema:
+            $ref: '#/definitions/bff.CreatePostResponse'
+        "400":
+          description: Ошибка в параметрах запроса
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+      summary: Создать новый пост
+      tags:
+      - posts
+swagger: "2.0"
