@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	ErrShortTitle = status.Error(codes.InvalidArgument, "Заголовок слишком короткий (минимум 3 символа)")
-	ErrLongTitle = status.Error(codes.InvalidArgument, "Заголовок слишком длинный (максимум 255 символов)")
-	ErrShortContent = status.Error(codes.InvalidArgument, "Содержание слишком короткое (минимум 3 символа)")
-	ErrLongContent = status.Error(codes.InvalidArgument, "Содержание слишком длинное (максимум 100000 символов)")
+	ErrShortTitle = status.Error(codes.InvalidArgument, domain.ErrShortTitle.Error())
+	ErrLongTitle = status.Error(codes.InvalidArgument, domain.ErrLongTitle.Error())
+	ErrShortContent = status.Error(codes.InvalidArgument, domain.ErrShortContent.Error())
+	ErrLongContent = status.Error(codes.InvalidArgument, domain.ErrLongContent.Error())
 	ErrInternal = status.Error(codes.Internal, "Внутренняя ошибка сервера")
 )
 

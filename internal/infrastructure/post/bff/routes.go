@@ -5,8 +5,6 @@ import (
 )
 
 func RegisterRoutes(app *fiber.App, h *Handler) {
-	bffGroup := app.Group("post")
-
-	bffGroup.Get("/", h.GetPosts)
-	bffGroup.Post("/", h.CreatePost)
+	app.Get("/post", h.GetPosts)
+	app.Post("/post", h.CreatePost)
 } 
