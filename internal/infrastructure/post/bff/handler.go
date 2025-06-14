@@ -68,7 +68,7 @@ func (h *Handler) GetPosts(c *fiber.Ctx) error {
 			"error": "Неверный формат данных",
 		})
 	}
-	
+
 	posts, err := h.postService.GetPosts(c, pageInt, limitInt)
 	if err != nil {
 		return handleGRPCError(c, err)
@@ -77,7 +77,7 @@ func (h *Handler) GetPosts(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"posts": posts.Posts,
 		"total": posts.Total,
-		"page": posts.Page,
+		"page":  posts.Page,
 		"limit": posts.Limit,
 	})
 }
@@ -177,7 +177,7 @@ func (h *Handler) UpdatePost(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "Пост успешно обновлен",
 	})
-}	
+}
 
 // DeletePost godoc
 // @Summary Удалить пост по ID

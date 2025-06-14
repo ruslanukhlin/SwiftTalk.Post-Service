@@ -4,7 +4,7 @@ import "errors"
 
 var (
 	ErrShortTitle = errors.New("слишком короткий заголовок")
-	ErrLongTitle = errors.New("слишком длинный заголовок")
+	ErrLongTitle  = errors.New("слишком длинный заголовок")
 )
 
 type Title struct {
@@ -12,11 +12,11 @@ type Title struct {
 }
 
 func NewTitle(value string) (*Title, error) {
-	if(len(value) < 3) {
+	if len(value) < 3 {
 		return nil, ErrShortTitle
 	}
 
-	if(len(value) > 255) {
+	if len(value) > 255 {
 		return nil, ErrLongTitle
 	}
 

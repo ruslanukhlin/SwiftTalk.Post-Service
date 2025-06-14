@@ -14,27 +14,24 @@ import (
 var _ domain.PostService = &PostApp{}
 
 type PostApp struct {
-	domain.PostRepository
-	s3 *s3.S3
-	cfg *config.Config
+	PostRepository domain.PostRepository
+	s3             *s3.S3
+	cfg            *config.Config
 }
 
 func NewPostApp(postRepo domain.PostRepository, s3 *s3.S3) *PostApp {
 	cfg := config.LoadConfigFromEnv()
 	return &PostApp{
 		PostRepository: postRepo,
-		s3: s3,
-		cfg: cfg,
+		s3:             s3,
+		cfg:            cfg,
 	}
 }
 
 func (a *PostApp) CreatePost(input *domain.CreatePostInput) error {
-	images, err := a.getImages(input.Images)
-	if err != nil {
-		return err
-	}
+	images := a.getImages(input.Images)
 
-	err = a.s3.UploadFiles(context.Background(), images.Readers, images.Urls)
+	err := a.s3.UploadFiles(context.Background(), images.Readers, images.Urls)
 	if err != nil {
 		return err
 	}
@@ -61,10 +58,7 @@ func (a *PostApp) UpdatePost(input *domain.UpdatePostInput) error {
 		return err
 	}
 
-	images, err := a.getImages(input.Images)
-	if err != nil {
-		return err
-	}
+	images := a.getImages(input.Images)
 
 	err = a.s3.UploadFiles(context.Background(), images.Readers, images.Urls)
 	if err != nil {
@@ -99,10 +93,9 @@ func (a *PostApp) DeletePost(uuid string) error {
 		return err
 	}
 
-	var s3Keys []string
-	for _, imageUrl := range post.Images {
-		fileFoBucket := a.cfg.S3.BucketFolder + "/" + imageUrl.UUID
-		s3Keys = append(s3Keys, fileFoBucket)
+	s3Keys := make([]string, len(post.Images))
+	for i, imageUrl := range post.Images {
+		s3Keys[i] = a.cfg.S3.BucketFolder + "/" + imageUrl.UUID
 	}
 
 	err = a.s3.DeleteFiles(context.Background(), s3Keys)
@@ -114,26 +107,26 @@ func (a *PostApp) DeletePost(uuid string) error {
 
 type Images struct {
 	Readers []io.Reader
-	Uuids []string
-	Urls []string
-	Domain []*domain.Image
+	Uuids   []string
+	Urls    []string
+	Domain  []*domain.Image
 }
 
-func (a *PostApp) getImages(images [][]byte) (Images, error) {
+func (a *PostApp) getImages(images [][]byte) *Images {
 	imagesReaders := make([]io.Reader, len(images))
 	imagesUuids := make([]string, len(images))
-	imagesUrls := make([]string, len(images))	
+	imagesUrls := make([]string, len(images))
 	imagesDomain := make([]*domain.Image, len(images))
 	for i, image := range images {
 		imagesUuids[i] = uuid.New().String()
 		imagesUrls[i] = a.cfg.S3.BucketUrl + "/" + imagesUuids[i]
-		imagesDomain[i] = domain.NewImage(imagesUuids[i], a.cfg.S3.BucketUrl + "/" + imagesUrls[i])
+		imagesDomain[i] = domain.NewImage(imagesUuids[i], a.cfg.S3.BucketUrl+"/"+imagesUrls[i])
 		imagesReaders[i] = bytes.NewReader(image)
-	}	
-	return Images{
+	}
+	return &Images{
 		Readers: imagesReaders,
-		Uuids: imagesUuids,
-		Urls: imagesUrls,
-		Domain: imagesDomain,
-	}, nil
+		Uuids:   imagesUuids,
+		Urls:    imagesUrls,
+		Domain:  imagesDomain,
+	}
 }

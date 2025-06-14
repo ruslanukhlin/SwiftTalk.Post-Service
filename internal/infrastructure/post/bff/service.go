@@ -2,6 +2,7 @@ package bff
 
 import (
 	"io"
+	"log"
 	"mime/multipart"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +19,12 @@ func NewPostService(client pb.PostServiceClient) *PostService {
 	}
 }
 
+func closeWithErrCheck(c io.Closer) {
+	if err := c.Close(); err != nil {
+		log.Printf("Ошибка при закрытии: %v", err)
+	}
+}
+
 func (s *PostService) GetPost(c *fiber.Ctx, postId string) (*Post, error) {
 	payload, err := s.client.GetPost(c.Context(), &pb.GetPostRequest{
 		Uuid: postId,
@@ -28,16 +35,16 @@ func (s *PostService) GetPost(c *fiber.Ctx, postId string) (*Post, error) {
 
 	images := getImages(payload.Post.Images)
 	return &Post{
-		Uuid: payload.Post.Uuid,
-		Title: payload.Post.Title,
+		Uuid:    payload.Post.Uuid,
+		Title:   payload.Post.Title,
 		Content: payload.Post.Content,
-		Images: images,
+		Images:  images,
 	}, nil
 }
 
 func (s *PostService) GetPosts(c *fiber.Ctx, page, limit int64) (*GetPostsResponse, error) {
 	response, err := s.client.GetPosts(c.Context(), &pb.GetPostsRequest{
-		Page: page,
+		Page:  page,
 		Limit: limit,
 	})
 	if err != nil {
@@ -58,12 +65,12 @@ func (s *PostService) GetPosts(c *fiber.Ctx, page, limit int64) (*GetPostsRespon
 	return &GetPostsResponse{
 		Posts: posts,
 		Total: response.Total,
-		Page: response.Page,
+		Page:  response.Page,
 		Limit: response.Limit,
 	}, nil
 }
 
-func (s *PostService) CreatePost(c *fiber.Ctx, title, content string, images []*multipart.FileHeader) error{
+func (s *PostService) CreatePost(c *fiber.Ctx, title, content string, images []*multipart.FileHeader) error {
 	imageBytes := make([][]byte, len(images))
 	for i, image := range images {
 		image, err := image.Open()
@@ -76,7 +83,7 @@ func (s *PostService) CreatePost(c *fiber.Ctx, title, content string, images []*
 			return err
 		}
 
-		defer image.Close()
+		defer closeWithErrCheck(image)
 	}
 
 	_, err := s.client.CreatePost(c.Context(), &pb.CreatePostRequest{
@@ -104,14 +111,14 @@ func (s *PostService) UpdatePost(c *fiber.Ctx, postId, title, content string, im
 			return err
 		}
 
-		defer image.Close()
+		defer closeWithErrCheck(image)
 	}
 
 	_, err := s.client.UpdatePost(c.Context(), &pb.UpdatePostRequest{
-		Uuid: postId,
-		Title: title,
-		Content: content,
-		Images: imageBytes,
+		Uuid:          postId,
+		Title:         title,
+		Content:       content,
+		Images:        imageBytes,
 		DeletedImages: deletedImages,
 	})
 	if err != nil {
@@ -137,7 +144,7 @@ func getImages(images []*pb.Image) []*Image {
 	for i, image := range images {
 		imagesBff[i] = &Image{
 			Uuid: image.Uuid,
-			Url: image.Url,
+			Url:  image.Url,
 		}
 	}
 	return imagesBff

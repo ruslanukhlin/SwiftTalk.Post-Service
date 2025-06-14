@@ -4,7 +4,7 @@ import "errors"
 
 var (
 	ErrShortContent = errors.New("слишком короткое содержание")
-	ErrLongContent = errors.New("слишком длинное содержание")
+	ErrLongContent  = errors.New("слишком длинное содержание")
 )
 
 type Content struct {
@@ -12,11 +12,11 @@ type Content struct {
 }
 
 func NewContent(value string) (*Content, error) {
-	if(len(value) < 3) {
+	if len(value) < 3 {
 		return nil, ErrShortContent
 	}
 
-	if(len(value) > 100000) {
+	if len(value) > 100000 {
 		return nil, ErrLongContent
 	}
 

@@ -21,15 +21,15 @@ type Image struct {
 }
 
 type Post struct {
-	Uuid    string `json:"uuid"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	Uuid    string   `json:"uuid"`
+	Title   string   `json:"title"`
+	Content string   `json:"content"`
 	Images  []*Image `json:"images"`
 }
 
 type GetPostsResponse struct {
 	Posts []*Post `json:"posts"`
-	Total int64 `json:"total"`
-	Page int64 `json:"page"`
-	Limit int64 `json:"limit"`
+	Total int64   `json:"total"`
+	Page  int64   `json:"page"`
+	Limit int64   `json:"limit"`
 }

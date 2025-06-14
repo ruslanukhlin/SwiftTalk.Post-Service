@@ -8,3 +8,7 @@ swagger:
 
 docker-up:
 	docker compose --env-file .env.local up -d
+
+.PHONY: lint
+lint:
+	golangci-lint run ./...

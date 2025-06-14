@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	s3 "github.com/ruslanukhlin/SwiftTalk.common/core/s3"
 	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
@@ -37,17 +40,30 @@ func main() {
 }
 
 func runGRPCServer(postApp *application.PostApp, port string) {
-	lis, err := net.Listen("tcp", ":" + port)
+	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatalf("Ошибка запуска сервера: %v", err)
 	}
-	defer lis.Close()
+
+	defer func() {
+		if err := lis.Close(); err != nil {
+			log.Printf("Ошибка при закрытии listener: %v", err)
+		}
+	}()
 
 	postGRPCHandler := postGRPC.NewPostGRPCHandler(postApp)
 	grpcServer := grpc.NewServer()
 	pb.RegisterPostServiceServer(grpcServer, postGRPCHandler)
 
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Ошибка grpc сервера: %v", err)
-	}
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Ошибка grpc сервера: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	grpcServer.GracefulStop()
 }

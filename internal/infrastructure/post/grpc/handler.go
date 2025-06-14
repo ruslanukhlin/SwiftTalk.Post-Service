@@ -12,12 +12,12 @@ import (
 )
 
 var (
-	ErrShortTitle = status.Error(codes.InvalidArgument, domain.ErrShortTitle.Error())
-	ErrLongTitle = status.Error(codes.InvalidArgument, domain.ErrLongTitle.Error())
+	ErrShortTitle   = status.Error(codes.InvalidArgument, domain.ErrShortTitle.Error())
+	ErrLongTitle    = status.Error(codes.InvalidArgument, domain.ErrLongTitle.Error())
 	ErrShortContent = status.Error(codes.InvalidArgument, domain.ErrShortContent.Error())
-	ErrLongContent = status.Error(codes.InvalidArgument, domain.ErrLongContent.Error())
+	ErrLongContent  = status.Error(codes.InvalidArgument, domain.ErrLongContent.Error())
 	ErrPostNotFound = status.Error(codes.NotFound, domain.ErrPostNotFound.Error())
-	ErrInternal = status.Error(codes.Internal, "Внутренняя ошибка сервера")
+	ErrInternal     = status.Error(codes.Internal, "Внутренняя ошибка сервера")
 )
 
 type PostGRPCHandler struct {
@@ -33,9 +33,9 @@ func NewPostGRPCHandler(postApp *application.PostApp) *PostGRPCHandler {
 
 func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequest) (*pb.CreatePostResponse, error) {
 	if err := h.postApp.CreatePost(&domain.CreatePostInput{
-		Title: req.Title,
+		Title:   req.Title,
 		Content: req.Content,
-		Images: req.Images,
+		Images:  req.Images,
 	}); err != nil {
 		switch err {
 		case domain.ErrShortTitle:
@@ -56,7 +56,6 @@ func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequ
 
 func (h *PostGRPCHandler) GetPosts(ctx context.Context, req *pb.GetPostsRequest) (*pb.GetPostsResponse, error) {
 	postsResponse, err := h.postApp.GetPosts(req.Page, req.Limit)
-
 	if err != nil {
 		return nil, ErrInternal
 	}
@@ -65,24 +64,23 @@ func (h *PostGRPCHandler) GetPosts(ctx context.Context, req *pb.GetPostsRequest)
 	for i, post := range postsResponse.Posts {
 		imagesPb := getImages(post.Images)
 		postsPb[i] = &pb.Post{
-			Uuid: post.UUID,
-			Title: post.Title.Value,
+			Uuid:    post.UUID,
+			Title:   post.Title.Value,
 			Content: post.Content.Value,
-			Images: imagesPb,
+			Images:  imagesPb,
 		}
 	}
 
 	return &pb.GetPostsResponse{
 		Posts: postsPb,
 		Total: postsResponse.Total,
-		Page: postsResponse.Page,
+		Page:  postsResponse.Page,
 		Limit: postsResponse.Limit,
 	}, nil
 }
 
 func (h *PostGRPCHandler) GetPost(ctx context.Context, req *pb.GetPostRequest) (*pb.GetPostResponse, error) {
 	post, err := h.postApp.GetPostByUUID(req.Uuid)
-
 	if err != nil {
 		if errors.Is(err, domain.ErrPostNotFound) {
 			return nil, ErrPostNotFound
@@ -93,10 +91,10 @@ func (h *PostGRPCHandler) GetPost(ctx context.Context, req *pb.GetPostRequest) (
 	imagesPb := getImages(post.Images)
 	return &pb.GetPostResponse{
 		Post: &pb.Post{
-			Uuid: post.UUID,
-			Title: post.Title.Value,
+			Uuid:    post.UUID,
+			Title:   post.Title.Value,
 			Content: post.Content.Value,
-			Images: imagesPb,
+			Images:  imagesPb,
 		},
 	}, nil
 }
@@ -114,10 +112,10 @@ func (h *PostGRPCHandler) DeletePost(ctx context.Context, req *pb.DeletePostRequ
 
 func (h *PostGRPCHandler) UpdatePost(ctx context.Context, req *pb.UpdatePostRequest) (*pb.UpdatePostResponse, error) {
 	if err := h.postApp.UpdatePost(&domain.UpdatePostInput{
-		UUID: req.Uuid,
-		Title: req.Title,
-		Content: req.Content,
-		Images: req.Images,
+		UUID:           req.Uuid,
+		Title:          req.Title,
+		Content:        req.Content,
+		Images:         req.Images,
 		ImagesToDelete: req.DeletedImages,
 	}); err != nil {
 		switch err {
@@ -142,7 +140,7 @@ func getImages(images []*domain.Image) []*pb.Image {
 	for i, image := range images {
 		imagesPb[i] = &pb.Image{
 			Uuid: image.UUID,
-			Url: image.URL,
+			Url:  image.URL,
 		}
 	}
 	return imagesPb

@@ -24,7 +24,7 @@ func (r *PostgresMemoryRepository) Save(post *domain.Post) error {
 	postDb.UUID = post.UUID
 	postDb.Title = post.Title.Value
 	postDb.Content = post.Content.Value
-	
+
 	for _, imageUrl := range post.Images {
 		postDb.Images = append(postDb.Images, Image{
 			UUID:     imageUrl.UUID,
@@ -176,7 +176,7 @@ func getImages(images []Image) []*domain.Image {
 	for i, image := range images {
 		imagesDomain[i] = &domain.Image{
 			UUID: image.UUID,
-			URL: image.URL,
+			URL:  image.URL,
 		}
 	}
 	return imagesDomain
