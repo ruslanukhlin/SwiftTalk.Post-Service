@@ -31,7 +31,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Ошибка инициализации s3: %v", err)
 	}
-	postApp := application.NewPostApp(postDb, s3Client, cfg)
+	postApp := application.NewPostApp(postDb, s3Client)
 
 	runGRPCServer(postApp, cfg.PortGrpc)
 }

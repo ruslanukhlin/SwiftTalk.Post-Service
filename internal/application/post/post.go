@@ -19,7 +19,8 @@ type PostApp struct {
 	cfg *config.Config
 }
 
-func NewPostApp(postRepo domain.PostRepository, s3 *s3.S3, cfg *config.Config) *PostApp {
+func NewPostApp(postRepo domain.PostRepository, s3 *s3.S3) *PostApp {
+	cfg := config.LoadConfigFromEnv()
 	return &PostApp{
 		PostRepository: postRepo,
 		s3: s3,
@@ -77,7 +78,7 @@ func (a *PostApp) UpdatePost(input *domain.UpdatePostInput) error {
 
 	imageS3Deletes := make([]string, len(input.ImagesToDelete))
 	for i, image := range input.ImagesToDelete {
-		imageS3Deletes[i] = "posts/" + image
+		imageS3Deletes[i] = a.cfg.S3.BucketFolder + "/" + image
 	}
 
 	err = a.s3.DeleteFiles(context.Background(), imageS3Deletes)
@@ -98,10 +99,10 @@ func (a *PostApp) DeletePost(uuid string) error {
 		return err
 	}
 
-	// Преобразуем полные URL в относительные пути
 	var s3Keys []string
 	for _, imageUrl := range post.Images {
-		s3Keys = append(s3Keys, "posts/" + imageUrl.UUID)
+		fileFoBucket := a.cfg.S3.BucketFolder + "/" + imageUrl.UUID
+		s3Keys = append(s3Keys, fileFoBucket)
 	}
 
 	err = a.s3.DeleteFiles(context.Background(), s3Keys)
@@ -125,8 +126,8 @@ func (a *PostApp) getImages(images [][]byte) (Images, error) {
 	imagesDomain := make([]*domain.Image, len(images))
 	for i, image := range images {
 		imagesUuids[i] = uuid.New().String()
-		imagesUrls[i] = "posts/" + imagesUuids[i]
-		imagesDomain[i] = domain.NewImage(imagesUuids[i], a.cfg.S3.BucketUrl + "/posts/" + imagesUuids[i])
+		imagesUrls[i] = a.cfg.S3.BucketUrl + "/" + imagesUuids[i]
+		imagesDomain[i] = domain.NewImage(imagesUuids[i], a.cfg.S3.BucketUrl + "/" + imagesUrls[i])
 		imagesReaders[i] = bytes.NewReader(image)
 	}	
 	return Images{
