@@ -6,5 +6,5 @@ import (
 )
 
 func Migrate(config *config.Config) error {
-	return DB.AutoMigrate(&postgres.Post{})
+	return DB.AutoMigrate(&postgres.Post{}, &postgres.Image{})
 }
