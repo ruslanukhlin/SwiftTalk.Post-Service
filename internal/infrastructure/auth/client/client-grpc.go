@@ -19,11 +19,15 @@ func NewClientGRPC(authClient pb.AuthServiceClient) *ClientGRPC {
 }
 
 func (c *ClientGRPC) VerifyToken(accessToken string) (*auth.VerifyTokenOutput, error) {
+	if accessToken == "" {
+		return nil, auth.ErrInvalidToken
+	}
+
 	response, err := c.authClient.VerifyToken(context.Background(), &pb.VerifyTokenRequest{
 		AccessToken: strings.TrimPrefix(accessToken, "Bearer "),
 	})
 	if err != nil {
-		return nil, err
+		return nil, auth.ErrVerifyToken
 	}
 
 	return &auth.VerifyTokenOutput{

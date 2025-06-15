@@ -106,7 +106,7 @@ func (s *PostService) CreatePost(c *fiber.Ctx, accessToken, title, content strin
 	return nil
 }
 
-func (s *PostService) UpdatePost(c *fiber.Ctx, postId, title, content string, images []*multipart.FileHeader, deletedImages []string) error {
+func (s *PostService) UpdatePost(c *fiber.Ctx, accessToken, postId, title, content string, images []*multipart.FileHeader, deletedImages []string) error {
 	imageBytes := make([][]byte, len(images))
 	for i, image := range images {
 		image, err := image.Open()
@@ -122,7 +122,11 @@ func (s *PostService) UpdatePost(c *fiber.Ctx, postId, title, content string, im
 		defer closeWithErrCheck(image)
 	}
 
-	_, err := s.client.UpdatePost(c.Context(), &pb.UpdatePostRequest{
+	ctx := metadata.NewOutgoingContext(c.Context(), metadata.New(map[string]string{
+		"authorization": accessToken,
+	}))
+
+	_, err := s.client.UpdatePost(ctx, &pb.UpdatePostRequest{
 		Uuid:          postId,
 		Title:         title,
 		Content:       content,
@@ -136,8 +140,12 @@ func (s *PostService) UpdatePost(c *fiber.Ctx, postId, title, content string, im
 	return nil
 }
 
-func (s *PostService) DeletePost(c *fiber.Ctx, postId string) error {
-	_, err := s.client.DeletePost(c.Context(), &pb.DeletePostRequest{
+func (s *PostService) DeletePost(c *fiber.Ctx, accessToken, postId string) error {
+	ctx := metadata.NewOutgoingContext(c.Context(), metadata.New(map[string]string{
+		"authorization": accessToken,
+	}))
+
+	_, err := s.client.DeletePost(ctx, &pb.DeletePostRequest{
 		Uuid: postId,
 	})
 	if err != nil {

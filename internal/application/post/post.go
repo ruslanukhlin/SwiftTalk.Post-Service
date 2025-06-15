@@ -61,9 +61,18 @@ func (a *PostApp) GetPostByUUID(uuid string) (*post.Post, error) {
 }
 
 func (a *PostApp) UpdatePost(input *post.UpdatePostInput) error {
+	verifyTokenOutput, err := a.authClient.VerifyToken(input.AccessToken)
+	if err != nil {
+		return err
+	}
+
 	foundPost, err := a.PostRepository.FindByUUID(input.UUID)
 	if err != nil {
 		return err
+	}
+
+	if verifyTokenOutput.UserUUID != foundPost.UserUUID {
+		return auth.ErrUserNotAuthor
 	}
 
 	images := a.getImages(input.Images)
@@ -95,10 +104,19 @@ func (a *PostApp) UpdatePost(input *post.UpdatePostInput) error {
 	return a.PostRepository.Update(foundPost)
 }
 
-func (a *PostApp) DeletePost(uuid string) error {
+func (a *PostApp) DeletePost(accessToken, uuid string) error {
+	verifyTokenOutput, err := a.authClient.VerifyToken(accessToken)
+	if err != nil {
+		return err
+	}
+
 	post, err := a.PostRepository.FindByUUID(uuid)
 	if err != nil {
 		return err
+	}
+
+	if verifyTokenOutput.UserUUID != post.UserUUID {
+		return auth.ErrUserNotAuthor
 	}
 
 	s3Keys := make([]string, len(post.Images))

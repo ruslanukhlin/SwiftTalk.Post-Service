@@ -9,6 +9,10 @@ import (
 func handleGRPCError(c *fiber.Ctx, err error) error {
 	if st, ok := status.FromError(err); ok {
 		switch st.Code() {
+		case codes.Unauthenticated:
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": st.Message(),
+			})
 		case codes.InvalidArgument:
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": st.Message(),

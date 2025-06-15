@@ -151,6 +151,16 @@ func (h *Handler) CreatePost(c *fiber.Ctx) error {
 // @Failure 500 {object} ErrorResponse "Внутренняя ошибка сервера"
 // @Router /post/{id} [put]
 func (h *Handler) UpdatePost(c *fiber.Ctx) error {
+	accessToken := c.Cookies("access_token")
+
+	if accessToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Неверный формат данных",
+		})
+	}
+
+	accessToken = strings.Replace(accessToken, "Bearer ", "", 1)
+
 	postId := c.Params("uuid")
 	title := c.FormValue("title")
 	content := c.FormValue("content")
@@ -180,7 +190,7 @@ func (h *Handler) UpdatePost(c *fiber.Ctx) error {
 		})
 	}
 
-	err = h.postService.UpdatePost(c, postId, title, content, images, imageUUIDs)
+	err = h.postService.UpdatePost(c, accessToken, postId, title, content, images, imageUUIDs)
 	if err != nil {
 		return handleGRPCError(c, err)
 	}
@@ -202,9 +212,18 @@ func (h *Handler) UpdatePost(c *fiber.Ctx) error {
 // @Failure 500 {object} ErrorResponse "Внутренняя ошибка сервера"
 // @Router /post/{id} [delete]
 func (h *Handler) DeletePost(c *fiber.Ctx) error {
+	accessToken := c.Cookies("access_token")
+
+	if accessToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Неверный формат данных",
+		})
+	}
+
+	accessToken = strings.Replace(accessToken, "Bearer ", "", 1)
 	postId := c.Params("uuid")
 
-	err := h.postService.DeletePost(c, postId)
+	err := h.postService.DeletePost(c, accessToken, postId)
 	if err != nil {
 		return handleGRPCError(c, err)
 	}

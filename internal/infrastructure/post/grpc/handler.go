@@ -3,10 +3,10 @@ package postGRPC
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
 	application "github.com/ruslanukhlin/SwiftTalk.post-service/internal/application/post"
+	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/auth"
 	domain "github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/post"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -14,13 +14,14 @@ import (
 )
 
 var (
-	ErrShortTitle   = status.Error(codes.InvalidArgument, domain.ErrShortTitle.Error())
-	ErrLongTitle    = status.Error(codes.InvalidArgument, domain.ErrLongTitle.Error())
-	ErrShortContent = status.Error(codes.InvalidArgument, domain.ErrShortContent.Error())
-	ErrLongContent  = status.Error(codes.InvalidArgument, domain.ErrLongContent.Error())
-	ErrPostNotFound = status.Error(codes.NotFound, domain.ErrPostNotFound.Error())
-	ErrInternal     = status.Error(codes.Internal, "Внутренняя ошибка сервера")
-	ErrUnauthorized = status.Error(codes.Unauthenticated, "Отсутствует токен авторизации")
+	ErrShortTitle    = status.Error(codes.InvalidArgument, domain.ErrShortTitle.Error())
+	ErrLongTitle     = status.Error(codes.InvalidArgument, domain.ErrLongTitle.Error())
+	ErrShortContent  = status.Error(codes.InvalidArgument, domain.ErrShortContent.Error())
+	ErrLongContent   = status.Error(codes.InvalidArgument, domain.ErrLongContent.Error())
+	ErrPostNotFound  = status.Error(codes.NotFound, domain.ErrPostNotFound.Error())
+	ErrUnauthorized  = status.Error(codes.Unauthenticated, auth.ErrInvalidToken.Error())
+	ErrUserNotAuthor = status.Error(codes.Unauthenticated, auth.ErrUserNotAuthor.Error())
+	ErrInternal      = status.Error(codes.Internal, "Внутренняя ошибка сервера")
 )
 
 type PostGRPCHandler struct {
@@ -61,8 +62,9 @@ func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequ
 			return nil, ErrShortContent
 		case domain.ErrLongContent:
 			return nil, ErrLongContent
+		case auth.ErrInvalidToken:
+			return nil, ErrUnauthorized
 		default:
-			fmt.Println(err)
 			return nil, ErrInternal
 		}
 	}
@@ -118,23 +120,50 @@ func (h *PostGRPCHandler) GetPost(ctx context.Context, req *pb.GetPostRequest) (
 }
 
 func (h *PostGRPCHandler) DeletePost(ctx context.Context, req *pb.DeletePostRequest) (*pb.DeletePostResponse, error) {
-	if err := h.postApp.DeletePost(req.Uuid); err != nil {
-		if errors.Is(err, domain.ErrPostNotFound) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
+	values := md.Get("authorization")
+	if len(values) == 0 {
+		return nil, ErrUnauthorized
+	}
+	accessToken := values[0]
+
+	if err := h.postApp.DeletePost(accessToken, req.Uuid); err != nil {
+		switch err {
+		case domain.ErrPostNotFound:
 			return nil, ErrPostNotFound
+		case auth.ErrUserNotAuthor:
+			return nil, ErrUserNotAuthor
+		default:
+			return nil, ErrInternal
 		}
-		return nil, ErrInternal
 	}
 
 	return &pb.DeletePostResponse{}, nil
 }
 
 func (h *PostGRPCHandler) UpdatePost(ctx context.Context, req *pb.UpdatePostRequest) (*pb.UpdatePostResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
+	values := md.Get("authorization")
+	if len(values) == 0 {
+		return nil, ErrUnauthorized
+	}
+	accessToken := values[0]
+
 	if err := h.postApp.UpdatePost(&domain.UpdatePostInput{
 		UUID:           req.Uuid,
 		Title:          req.Title,
 		Content:        req.Content,
 		Images:         req.Images,
 		ImagesToDelete: req.DeletedImages,
+		AccessToken:    accessToken,
 	}); err != nil {
 		switch err {
 		case domain.ErrShortTitle:
@@ -145,6 +174,8 @@ func (h *PostGRPCHandler) UpdatePost(ctx context.Context, req *pb.UpdatePostRequ
 			return nil, ErrShortContent
 		case domain.ErrLongContent:
 			return nil, ErrLongContent
+		case auth.ErrUserNotAuthor:
+			return nil, ErrUserNotAuthor
 		default:
 			return nil, ErrInternal
 		}

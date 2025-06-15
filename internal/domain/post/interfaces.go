@@ -28,7 +28,7 @@ type PostService interface {
 	GetPosts(page, limit int64) (*GetPostsResponse, error)
 	GetPostByUUID(uuid string) (*Post, error)
 	UpdatePost(input *UpdatePostInput) error
-	DeletePost(uuid string) error
+	DeletePost(accessToken, uuid string) error
 }
 
 type PostRepository interface {
