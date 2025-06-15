@@ -13,6 +13,7 @@ type Image struct {
 
 type Post struct {
 	UUID      string    `gorm:"primaryKey;type:uuid"`
+	UserUUID  string    `gorm:"not null;type:uuid"`
 	Title     string    `gorm:"not null;type:varchar(255)"`
 	Content   string    `gorm:"not null;type:text"`
 	Images    []Image   `gorm:"foreignKey:PostUUID;references:UUID;constraint:OnDelete:CASCADE"`

@@ -13,6 +13,11 @@ var (
 	cfg  *Config
 )
 
+type AuthConfig struct {
+	Host string
+	Port string
+}
+
 type PostgresConfig struct {
 	Host     string
 	Port     string
@@ -33,6 +38,7 @@ type Config struct {
 	PortHttp string
 	Postgres *PostgresConfig
 	S3       *S3Config
+	Auth     *AuthConfig
 }
 
 func LoadConfigFromEnv() *Config {
@@ -54,6 +60,10 @@ func LoadConfigFromEnv() *Config {
 				Bucket:       os.Getenv("S3_BUCKET"),
 				BucketUrl:    os.Getenv("S3_BUCKET_URL"),
 				BucketFolder: os.Getenv("S3_BUCKET_FOLDER"),
+			},
+			Auth: &AuthConfig{
+				Host: os.Getenv("AUTH_HOST"),
+				Port: os.Getenv("AUTH_PORT"),
 			},
 		}
 	})

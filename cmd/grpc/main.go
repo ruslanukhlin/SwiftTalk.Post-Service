@@ -9,13 +9,16 @@ import (
 	"syscall"
 
 	s3 "github.com/ruslanukhlin/SwiftTalk.common/core/s3"
+	pbAuth "github.com/ruslanukhlin/SwiftTalk.common/gen/auth"
 	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
 	application "github.com/ruslanukhlin/SwiftTalk.post-service/internal/application/post"
+	clientGRPC "github.com/ruslanukhlin/SwiftTalk.post-service/internal/infrastructure/auth/client"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/infrastructure/post/db/postgres"
 	postGRPC "github.com/ruslanukhlin/SwiftTalk.post-service/internal/infrastructure/post/grpc"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/pkg/config"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/pkg/gorm"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -34,7 +37,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Ошибка инициализации s3: %v", err)
 	}
-	postApp := application.NewPostApp(postDb, s3Client)
+	authClient := clientGRPC.NewClientGRPC(getAuthClient(cfg))
+	postApp := application.NewPostApp(postDb, s3Client, authClient)
 
 	runGRPCServer(postApp, cfg.PortGrpc)
 }
@@ -66,4 +70,12 @@ func runGRPCServer(postApp *application.PostApp, port string) {
 	<-quit
 
 	grpcServer.GracefulStop()
+}
+
+func getAuthClient(cfg *config.Config) pbAuth.AuthServiceClient {
+	conn, err := grpc.NewClient(cfg.Auth.Host+":"+cfg.Auth.Port, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("Ошибка соединения с сервисом auth: %v", err)
+	}
+	return pbAuth.NewAuthServiceClient(conn)
 }

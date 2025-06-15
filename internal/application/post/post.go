@@ -7,53 +7,32 @@ import (
 
 	"github.com/google/uuid"
 	s3 "github.com/ruslanukhlin/SwiftTalk.common/core/s3"
-	domain "github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/post"
+	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/auth"
+	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/post"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/pkg/config"
 )
 
-var _ domain.PostService = &PostApp{}
+var _ post.PostService = &PostApp{}
 
 type PostApp struct {
-	PostRepository domain.PostRepository
+	PostRepository post.PostRepository
+	authClient     auth.AuthRepository
 	s3             *s3.S3
 	cfg            *config.Config
 }
 
-func NewPostApp(postRepo domain.PostRepository, s3 *s3.S3) *PostApp {
+func NewPostApp(postRepo post.PostRepository, s3 *s3.S3, authClient auth.AuthRepository) *PostApp {
 	cfg := config.LoadConfigFromEnv()
 	return &PostApp{
 		PostRepository: postRepo,
+		authClient:     authClient,
 		s3:             s3,
 		cfg:            cfg,
 	}
 }
 
-func (a *PostApp) CreatePost(input *domain.CreatePostInput) error {
-	images := a.getImages(input.Images)
-
-	err := a.s3.UploadFiles(context.Background(), images.Readers, images.Urls)
-	if err != nil {
-		return err
-	}
-
-	post, err := domain.NewPost(input.Title, input.Content, images.Domain)
-	if err != nil {
-		return err
-	}
-
-	return a.PostRepository.Save(post)
-}
-
-func (a *PostApp) GetPosts(page, limit int64) (*domain.GetPostsResponse, error) {
-	return a.PostRepository.FindAll(page, limit)
-}
-
-func (a *PostApp) GetPostByUUID(uuid string) (*domain.Post, error) {
-	return a.PostRepository.FindByUUID(uuid)
-}
-
-func (a *PostApp) UpdatePost(input *domain.UpdatePostInput) error {
-	post, err := a.PostRepository.FindByUUID(input.UUID)
+func (a *PostApp) CreatePost(input *post.CreatePostInput) error {
+	verifyTokenOutput, err := a.authClient.VerifyToken(input.AccessToken)
 	if err != nil {
 		return err
 	}
@@ -65,7 +44,36 @@ func (a *PostApp) UpdatePost(input *domain.UpdatePostInput) error {
 		return err
 	}
 
-	err = a.PostRepository.DeleteImages(post.UUID, input.ImagesToDelete)
+	post, err := post.NewPost(verifyTokenOutput.UserUUID, input.Title, input.Content, images.Domain)
+	if err != nil {
+		return err
+	}
+
+	return a.PostRepository.Save(post)
+}
+
+func (a *PostApp) GetPosts(page, limit int64) (*post.GetPostsResponse, error) {
+	return a.PostRepository.FindAll(page, limit)
+}
+
+func (a *PostApp) GetPostByUUID(uuid string) (*post.Post, error) {
+	return a.PostRepository.FindByUUID(uuid)
+}
+
+func (a *PostApp) UpdatePost(input *post.UpdatePostInput) error {
+	foundPost, err := a.PostRepository.FindByUUID(input.UUID)
+	if err != nil {
+		return err
+	}
+
+	images := a.getImages(input.Images)
+
+	err = a.s3.UploadFiles(context.Background(), images.Readers, images.Urls)
+	if err != nil {
+		return err
+	}
+
+	err = a.PostRepository.DeleteImages(foundPost.UUID, input.ImagesToDelete)
 	if err != nil {
 		return err
 	}
@@ -80,11 +88,11 @@ func (a *PostApp) UpdatePost(input *domain.UpdatePostInput) error {
 		return err
 	}
 
-	post.Title = domain.Title{Value: input.Title}
-	post.Content = domain.Content{Value: input.Content}
-	post.Images = images.Domain
+	foundPost.Title = post.Title{Value: input.Title}
+	foundPost.Content = post.Content{Value: input.Content}
+	foundPost.Images = images.Domain
 
-	return a.PostRepository.Update(post)
+	return a.PostRepository.Update(foundPost)
 }
 
 func (a *PostApp) DeletePost(uuid string) error {
@@ -109,18 +117,18 @@ type Images struct {
 	Readers []io.Reader
 	Uuids   []string
 	Urls    []string
-	Domain  []*domain.Image
+	Domain  []*post.Image
 }
 
 func (a *PostApp) getImages(images [][]byte) *Images {
 	imagesReaders := make([]io.Reader, len(images))
 	imagesUuids := make([]string, len(images))
 	imagesUrls := make([]string, len(images))
-	imagesDomain := make([]*domain.Image, len(images))
+	imagesDomain := make([]*post.Image, len(images))
 	for i, image := range images {
 		imagesUuids[i] = uuid.New().String()
-		imagesUrls[i] = a.cfg.S3.BucketUrl + "/" + imagesUuids[i]
-		imagesDomain[i] = domain.NewImage(imagesUuids[i], a.cfg.S3.BucketUrl+"/"+imagesUrls[i])
+		imagesUrls[i] = a.cfg.S3.BucketFolder + "/" + imagesUuids[i]
+		imagesDomain[i] = post.NewImage(imagesUuids[i], a.cfg.S3.BucketUrl+"/"+imagesUrls[i])
 		imagesReaders[i] = bytes.NewReader(image)
 	}
 	return &Images{

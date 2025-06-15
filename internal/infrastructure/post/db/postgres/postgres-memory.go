@@ -22,6 +22,7 @@ func NewPostgresMemoryRepository(db *gorm.DB) *PostgresMemoryRepository {
 func (r *PostgresMemoryRepository) Save(post *domain.Post) error {
 	var postDb Post
 	postDb.UUID = post.UUID
+	postDb.UserUUID = post.UserUUID
 	postDb.Title = post.Title.Value
 	postDb.Content = post.Content.Value
 
@@ -52,6 +53,7 @@ func (r *PostgresMemoryRepository) FindAll(page, limit int64) (*domain.GetPostsR
 		images := getImages(post.Images)
 		domainPosts[i] = &domain.Post{
 			UUID:      post.UUID,
+			UserUUID:  post.UserUUID,
 			Title:     domain.Title{Value: post.Title},
 			Content:   domain.Content{Value: post.Content},
 			Images:    images,
@@ -81,6 +83,7 @@ func (r *PostgresMemoryRepository) FindByUUID(uuid string) (*domain.Post, error)
 
 	return &domain.Post{
 		UUID:      post.UUID,
+		UserUUID:  post.UserUUID,
 		Title:     domain.Title{Value: post.Title},
 		Content:   domain.Content{Value: post.Content},
 		Images:    images,
@@ -110,7 +113,6 @@ func (r *PostgresMemoryRepository) Update(post *domain.Post) error {
 
 		// Если есть новые изображения, обрабатываем их
 		if post.Images != nil {
-			// Создаем map существующих изображений для быстрого поиска
 			existingImages := make(map[string]bool)
 			for _, img := range postDb.Images {
 				existingImages[img.UUID] = true

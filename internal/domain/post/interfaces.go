@@ -8,12 +8,14 @@ type GetPostsResponse struct {
 }
 
 type CreatePostInput struct {
-	Title   string
-	Content string
-	Images  [][]byte
+	AccessToken string
+	Title       string
+	Content     string
+	Images      [][]byte
 }
 
 type UpdatePostInput struct {
+	AccessToken    string
 	UUID           string
 	Title          string
 	Content        string

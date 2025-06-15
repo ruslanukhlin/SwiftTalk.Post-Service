@@ -3,6 +3,7 @@ package bff
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -96,6 +97,16 @@ func (h *Handler) GetPosts(c *fiber.Ctx) error {
 // @Failure 500 {object} ErrorResponse "Внутренняя ошибка сервера"
 // @Router /post [post]
 func (h *Handler) CreatePost(c *fiber.Ctx) error {
+	accessToken := c.Cookies("access_token")
+
+	if accessToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Неверный формат данных",
+		})
+	}
+
+	accessToken = strings.Replace(accessToken, "Bearer ", "", 1)
+
 	title := c.FormValue("title")
 	content := c.FormValue("content")
 
@@ -114,7 +125,7 @@ func (h *Handler) CreatePost(c *fiber.Ctx) error {
 
 	images := form.File["images"]
 
-	err = h.postService.CreatePost(c, title, content, images)
+	err = h.postService.CreatePost(c, accessToken, title, content, images)
 	if err != nil {
 		return handleGRPCError(c, err)
 	}

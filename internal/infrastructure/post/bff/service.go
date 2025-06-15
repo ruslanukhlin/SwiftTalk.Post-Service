@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
+	"google.golang.org/grpc/metadata"
 )
 
 type PostService struct {
@@ -35,10 +36,11 @@ func (s *PostService) GetPost(c *fiber.Ctx, postId string) (*Post, error) {
 
 	images := getImages(payload.Post.Images)
 	return &Post{
-		Uuid:    payload.Post.Uuid,
-		Title:   payload.Post.Title,
-		Content: payload.Post.Content,
-		Images:  images,
+		Uuid:     payload.Post.Uuid,
+		UserUuid: payload.Post.UserUuid,
+		Title:    payload.Post.Title,
+		Content:  payload.Post.Content,
+		Images:   images,
 	}, nil
 }
 
@@ -55,10 +57,11 @@ func (s *PostService) GetPosts(c *fiber.Ctx, page, limit int64) (*GetPostsRespon
 	for i, post := range response.Posts {
 		images := getImages(post.Images)
 		posts[i] = &Post{
-			Uuid:    post.Uuid,
-			Title:   post.Title,
-			Content: post.Content,
-			Images:  images,
+			Uuid:     post.Uuid,
+			UserUuid: post.UserUuid,
+			Title:    post.Title,
+			Content:  post.Content,
+			Images:   images,
 		}
 	}
 
@@ -70,7 +73,7 @@ func (s *PostService) GetPosts(c *fiber.Ctx, page, limit int64) (*GetPostsRespon
 	}, nil
 }
 
-func (s *PostService) CreatePost(c *fiber.Ctx, title, content string, images []*multipart.FileHeader) error {
+func (s *PostService) CreatePost(c *fiber.Ctx, accessToken, title, content string, images []*multipart.FileHeader) error {
 	imageBytes := make([][]byte, len(images))
 	for i, image := range images {
 		image, err := image.Open()
@@ -86,7 +89,12 @@ func (s *PostService) CreatePost(c *fiber.Ctx, title, content string, images []*
 		defer closeWithErrCheck(image)
 	}
 
-	_, err := s.client.CreatePost(c.Context(), &pb.CreatePostRequest{
+	// Создаем контекст с метаданными
+	ctx := metadata.NewOutgoingContext(c.Context(), metadata.New(map[string]string{
+		"authorization": accessToken,
+	}))
+
+	_, err := s.client.CreatePost(ctx, &pb.CreatePostRequest{
 		Title:   title,
 		Content: content,
 		Images:  imageBytes,

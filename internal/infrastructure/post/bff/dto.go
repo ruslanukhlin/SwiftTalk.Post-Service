@@ -21,10 +21,11 @@ type Image struct {
 }
 
 type Post struct {
-	Uuid    string   `json:"uuid"`
-	Title   string   `json:"title"`
-	Content string   `json:"content"`
-	Images  []*Image `json:"images"`
+	Uuid     string   `json:"uuid"`
+	UserUuid string   `json:"user_uuid"`
+	Title    string   `json:"title"`
+	Content  string   `json:"content"`
+	Images   []*Image `json:"images"`
 }
 
 type GetPostsResponse struct {

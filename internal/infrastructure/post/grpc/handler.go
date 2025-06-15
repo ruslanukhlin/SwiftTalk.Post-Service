@@ -3,11 +3,13 @@ package postGRPC
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
 	application "github.com/ruslanukhlin/SwiftTalk.post-service/internal/application/post"
 	domain "github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/post"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -18,6 +20,7 @@ var (
 	ErrLongContent  = status.Error(codes.InvalidArgument, domain.ErrLongContent.Error())
 	ErrPostNotFound = status.Error(codes.NotFound, domain.ErrPostNotFound.Error())
 	ErrInternal     = status.Error(codes.Internal, "Внутренняя ошибка сервера")
+	ErrUnauthorized = status.Error(codes.Unauthenticated, "Отсутствует токен авторизации")
 )
 
 type PostGRPCHandler struct {
@@ -32,10 +35,22 @@ func NewPostGRPCHandler(postApp *application.PostApp) *PostGRPCHandler {
 }
 
 func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequest) (*pb.CreatePostResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
+	values := md.Get("authorization")
+	if len(values) == 0 {
+		return nil, ErrUnauthorized
+	}
+	accessToken := values[0]
+
 	if err := h.postApp.CreatePost(&domain.CreatePostInput{
-		Title:   req.Title,
-		Content: req.Content,
-		Images:  req.Images,
+		AccessToken: accessToken,
+		Title:       req.Title,
+		Content:     req.Content,
+		Images:      req.Images,
 	}); err != nil {
 		switch err {
 		case domain.ErrShortTitle:
@@ -47,6 +62,7 @@ func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequ
 		case domain.ErrLongContent:
 			return nil, ErrLongContent
 		default:
+			fmt.Println(err)
 			return nil, ErrInternal
 		}
 	}
@@ -64,10 +80,11 @@ func (h *PostGRPCHandler) GetPosts(ctx context.Context, req *pb.GetPostsRequest)
 	for i, post := range postsResponse.Posts {
 		imagesPb := getImages(post.Images)
 		postsPb[i] = &pb.Post{
-			Uuid:    post.UUID,
-			Title:   post.Title.Value,
-			Content: post.Content.Value,
-			Images:  imagesPb,
+			Uuid:     post.UUID,
+			UserUuid: post.UserUUID,
+			Title:    post.Title.Value,
+			Content:  post.Content.Value,
+			Images:   imagesPb,
 		}
 	}
 
@@ -91,10 +108,11 @@ func (h *PostGRPCHandler) GetPost(ctx context.Context, req *pb.GetPostRequest) (
 	imagesPb := getImages(post.Images)
 	return &pb.GetPostResponse{
 		Post: &pb.Post{
-			Uuid:    post.UUID,
-			Title:   post.Title.Value,
-			Content: post.Content.Value,
-			Images:  imagesPb,
+			Uuid:     post.UUID,
+			UserUuid: post.UserUUID,
+			Title:    post.Title.Value,
+			Content:  post.Content.Value,
+			Images:   imagesPb,
 		},
 	}, nil
 }

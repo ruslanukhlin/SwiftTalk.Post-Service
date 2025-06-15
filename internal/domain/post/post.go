@@ -8,6 +8,7 @@ import (
 
 type Post struct {
 	UUID      string
+	UserUUID  string
 	Title     Title
 	Content   Content
 	Images    []*Image
@@ -15,7 +16,7 @@ type Post struct {
 	UpdatedAt time.Time
 }
 
-func NewPost(title, content string, images []*Image) (*Post, error) {
+func NewPost(userUUID, title, content string, images []*Image) (*Post, error) {
 	titleValid, err := NewTitle(title)
 	if err != nil {
 		return nil, err
@@ -28,6 +29,7 @@ func NewPost(title, content string, images []*Image) (*Post, error) {
 
 	return &Post{
 		UUID:      uuid.New().String(),
+		UserUUID:  userUUID,
 		Title:     *titleValid,
 		Content:   *contentValid,
 		Images:    images,
