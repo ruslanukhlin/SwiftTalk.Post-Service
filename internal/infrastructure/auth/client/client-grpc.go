@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/auth"
+	pb "github.com/ruslanukhlin/SwiftTalk.Common/gen/auth"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/auth"
 )
 

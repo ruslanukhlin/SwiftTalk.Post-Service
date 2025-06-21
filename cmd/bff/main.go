@@ -14,13 +14,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
+	pb "github.com/ruslanukhlin/SwiftTalk.Common/gen/post"
 )
 
 // @title SwiftTalk Post Service API
 // @version 1.0
 // @description API сервиса постов для платформы SwiftTalk
-// @host localhost:8080
+// @host localhost:5001
 // @BasePath /postService/
 func main() {
 	cfg := config.LoadConfigFromEnv()

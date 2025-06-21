@@ -2,10 +2,9 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"sync"
-
-	"github.com/joho/godotenv"
 )
 
 var (
@@ -43,7 +42,7 @@ type Config struct {
 
 func LoadConfigFromEnv() *Config {
 	once.Do(func() {
-		_ = godotenv.Load(".env.local")
+		// _ = godotenv.Load(".env.local")
 
 		cfg = &Config{
 			Mode:     os.Getenv("MODE"),
@@ -72,8 +71,14 @@ func LoadConfigFromEnv() *Config {
 }
 
 func DNS(c *PostgresConfig) string {
-	return fmt.Sprintf(
+	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		c.Host, c.User, c.Password, c.DBName, c.Port,
 	)
+
+	// Логируем строку подключения (без пароля)
+	log.Printf("Attempting to connect to PostgreSQL with: host=%s user=%s dbname=%s port=%s sslmode=disable",
+		c.Host, c.User, c.DBName, c.Port)
+
+	return dsn
 }

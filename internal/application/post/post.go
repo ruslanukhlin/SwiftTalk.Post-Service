@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/google/uuid"
-	s3 "github.com/ruslanukhlin/SwiftTalk.common/core/s3"
+	s3 "github.com/ruslanukhlin/SwiftTalk.Common/core/s3"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/auth"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/post"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/pkg/config"

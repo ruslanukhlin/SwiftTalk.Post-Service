@@ -6,7 +6,7 @@ import (
 	"mime/multipart"
 
 	"github.com/gofiber/fiber/v2"
-	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
+	pb "github.com/ruslanukhlin/SwiftTalk.Common/gen/post"
 	"google.golang.org/grpc/metadata"
 )
 

@@ -9,6 +9,9 @@ swagger:
 docker-up:
 	docker compose --env-file .env.local up -d
 
+docker-up prod:
+	docker compose --env-file .env.prod up -d
+
 .PHONY: lint
 lint:
 	golangci-lint run ./...

@@ -4,11 +4,11 @@ go 1.24.3
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/ruslanukhlin/SwiftTalk.common v0.0.2
+	github.com/ruslanukhlin/SwiftTalk.Common v0.0.2
 	golang.org/x/text v0.26.0 // indirect; indirectgo clean -modcache
 )
 
-replace github.com/ruslanukhlin/SwiftTalk.common => ../common
+// replace github.com/ruslanukhlin/SwiftTalk.Common => ../common
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.8

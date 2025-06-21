@@ -2,15 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	s3 "github.com/ruslanukhlin/SwiftTalk.common/core/s3"
-	pbAuth "github.com/ruslanukhlin/SwiftTalk.common/gen/auth"
-	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
+	s3 "github.com/ruslanukhlin/SwiftTalk.Common/core/s3"
+	pbAuth "github.com/ruslanukhlin/SwiftTalk.Common/gen/auth"
+	pb "github.com/ruslanukhlin/SwiftTalk.Common/gen/post"
 	application "github.com/ruslanukhlin/SwiftTalk.post-service/internal/application/post"
 	clientGRPC "github.com/ruslanukhlin/SwiftTalk.post-service/internal/infrastructure/auth/client"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/infrastructure/post/db/postgres"
@@ -23,6 +25,16 @@ import (
 
 func main() {
 	cfg := config.LoadConfigFromEnv()
+
+	// Проверяем доступность PostgreSQL
+	log.Printf("Checking PostgreSQL connectivity...")
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%s", cfg.Postgres.Host, cfg.Postgres.Port), 5*time.Second)
+	if err != nil {
+		log.Printf("Warning: Cannot connect to PostgreSQL: %v", err)
+	} else {
+		conn.Close()
+		log.Printf("PostgreSQL is reachable!")
+	}
 
 	if err := gorm.InitDB(config.DNS(cfg.Postgres)); err != nil {
 		log.Fatalf("Ошибка инициализации базы данных: %v", err)

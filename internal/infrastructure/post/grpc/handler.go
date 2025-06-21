@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	pb "github.com/ruslanukhlin/SwiftTalk.common/gen/post"
+	pb "github.com/ruslanukhlin/SwiftTalk.Common/gen/post"
 	application "github.com/ruslanukhlin/SwiftTalk.post-service/internal/application/post"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/auth"
 	domain "github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/post"
