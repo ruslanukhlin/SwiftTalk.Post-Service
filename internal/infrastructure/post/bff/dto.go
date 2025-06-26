@@ -10,6 +10,21 @@ type CreatePostResponse struct {
 	Message string `json:"message"`
 }
 
+// GetPostResponse представляет ответ с одним постом
+type GetPostResponse struct {
+	Post *Post `json:"post"`
+}
+
+// UpdatePostResponse представляет ответ на обновление поста
+type UpdatePostResponse struct {
+	Message string `json:"message"`
+}
+
+// DeletePostResponse представляет ответ на удаление поста
+type DeletePostResponse struct {
+	Message string `json:"message"`
+}
+
 // ErrorResponse представляет ответ с ошибкой
 type ErrorResponse struct {
 	Error string `json:"error"`

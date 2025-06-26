@@ -25,7 +25,7 @@ func NewHandler(postService *PostService) *Handler {
 // @Accept json
 // @Produce json
 // @Param id path string true "ID поста"
-// @Success 200 {object} fiber.Map "Успешный ответ с информацией о посте"
+// @Success 200 {object} GetPostResponse "Успешный ответ с информацией о посте"
 // @Failure 400 {object} ErrorResponse "Ошибка запроса"
 // @Failure 404 {object} ErrorResponse "Пост не найден"
 // @Failure 500 {object} ErrorResponse "Внутренняя ошибка сервера"
@@ -207,7 +207,7 @@ func (h *Handler) UpdatePost(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "ID поста"
-// @Success 200 {object} fiber.Map "Успешное удаление поста"
+// @Success 200 {object} DeletePostResponse "Успешное удаление поста"
 // @Failure 400 {object} ErrorResponse "Ошибка запроса"
 // @Failure 500 {object} ErrorResponse "Внутренняя ошибка сервера"
 // @Router /post/{id} [delete]

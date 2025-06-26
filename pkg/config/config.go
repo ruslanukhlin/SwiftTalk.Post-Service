@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"sync"
+
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -42,7 +44,7 @@ type Config struct {
 
 func LoadConfigFromEnv() *Config {
 	once.Do(func() {
-		// _ = godotenv.Load(".env.local")
+		_ = godotenv.Load(".env.prod")
 
 		cfg = &Config{
 			Mode:     os.Getenv("MODE"),

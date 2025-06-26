@@ -1,5 +1,10 @@
 package main
 
+// @title SwiftTalk Post Service API
+// @version 1.0
+// @description API сервиса постов для платформы SwiftTalk
+// @host localhost:5001
+// @BasePath /post-service/
 import (
 	"log"
 	"os"
@@ -7,27 +12,32 @@ import (
 	"syscall"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	_ "github.com/ruslanukhlin/SwiftTalk.post-service/docs"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/infrastructure/post/bff"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/pkg/config"
-	fiberSwagger "github.com/swaggo/fiber-swagger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	pb "github.com/ruslanukhlin/SwiftTalk.Common/gen/post"
 )
 
-// @title SwiftTalk Post Service API
-// @version 1.0
-// @description API сервиса постов для платформы SwiftTalk
-// @host localhost:5001
-// @BasePath /postService/
 func main() {
 	cfg := config.LoadConfigFromEnv()
 
-	app := fiber.New()
+	server := fiber.New()
 
-	app.Get("/swagger/*", fiberSwagger.FiberWrapHandler())
+	server.Get("/docs/docs.json", func(c *fiber.Ctx) error {
+		return c.SendFile("./docs/swagger-v3.json")
+	})
+
+	// OpenAPI 3.0 UI
+	server.Get("/docs/*", swagger.New(swagger.Config{
+		URL:          "docs.json",
+		DeepLinking:  true,
+		DocExpansion: "none",
+		Title:        "SwiftTalk Post Service API (OpenAPI 3.0)",
+	}))
 
 	conn, err := grpc.NewClient(":"+cfg.PortGrpc, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -38,10 +48,10 @@ func main() {
 	postService := bff.NewPostService(postClient)
 	handler := bff.NewHandler(postService)
 
-	bff.RegisterRoutes(app, handler)
+	bff.RegisterRoutes(server, handler)
 
 	go func() {
-		if err := app.Listen(":" + cfg.PortHttp); err != nil {
+		if err := server.Listen(":" + cfg.PortHttp); err != nil {
 			log.Fatalf("Ошибка запуска HTTP сервера: %v", err)
 		}
 		defer func() {
@@ -55,7 +65,7 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	if err := app.Shutdown(); err != nil {
+	if err := server.Shutdown(); err != nil {
 		log.Printf("Ошибка graceful shutdown: %v", err)
 	}
 }

@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/ruslanukhlin/SwiftTalk.Common v0.0.2
+	github.com/ruslanukhlin/SwiftTalk.Common v0.0.3
 	golang.org/x/text v0.26.0 // indirect; indirectgo clean -modcache
 )
 
@@ -17,6 +17,8 @@ require (
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.30.0
 )
+
+require github.com/swaggo/files/v2 v2.0.2 // indirect
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
@@ -46,6 +48,7 @@ require (
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/spec v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.1 // indirect
+	github.com/gofiber/swagger v1.1.1
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.5.5 // indirect

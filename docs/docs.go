@@ -32,7 +32,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Успешный ответ с списком постов",
                         "schema": {
-                            "$ref": "#/definitions/bff.PostsResponse"
+                            "$ref": "#/definitions/bff.GetPostsResponse"
                         }
                     },
                     "400": {
@@ -104,10 +104,178 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/post/{id}": {
+            "get": {
+                "description": "Получить детальную информацию о посте по его идентификатору",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "Получить пост по ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ с информацией о посте",
+                        "schema": {
+                            "$ref": "#/definitions/bff.GetPostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка запроса",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Пост не найден",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Обновить пост по его идентификатору",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "Обновить пост по ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Заголовок поста",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Содержание поста",
+                        "name": "content",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Изображения (множественная загрузка)",
+                        "name": "images",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Удаленные изображения",
+                        "name": "deleted_images",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешное обновление поста",
+                        "schema": {
+                            "$ref": "#/definitions/bff.UpdatePostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в параметрах запроса",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Удалить пост по его идентификатору",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "Удалить пост по ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID поста",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешное удаление поста",
+                        "schema": {
+                            "$ref": "#/definitions/bff.DeletePostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка запроса",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/bff.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
         "bff.CreatePostResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "bff.DeletePostResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -123,6 +291,45 @@ const docTemplate = `{
                 }
             }
         },
+        "bff.GetPostResponse": {
+            "type": "object",
+            "properties": {
+                "post": {
+                    "$ref": "#/definitions/bff.Post"
+                }
+            }
+        },
+        "bff.GetPostsResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "posts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/bff.Post"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "bff.Image": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "bff.Post": {
             "type": "object",
             "properties": {
@@ -132,10 +339,13 @@ const docTemplate = `{
                 "images": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/bff.Image"
                     }
                 },
                 "title": {
+                    "type": "string"
+                },
+                "user_uuid": {
                     "type": "string"
                 },
                 "uuid": {
@@ -143,14 +353,11 @@ const docTemplate = `{
                 }
             }
         },
-        "bff.PostsResponse": {
+        "bff.UpdatePostResponse": {
             "type": "object",
             "properties": {
-                "posts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/bff.Post"
-                    }
+                "message": {
+                    "type": "string"
                 }
             }
         }
@@ -160,8 +367,8 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
-	BasePath:         "/postService/",
+	Host:             "localhost:5001",
+	BasePath:         "/post-service/",
 	Schemes:          []string{},
 	Title:            "SwiftTalk Post Service API",
 	Description:      "API сервиса постов для платформы SwiftTalk",

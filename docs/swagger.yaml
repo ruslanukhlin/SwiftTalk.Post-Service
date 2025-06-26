@@ -1,6 +1,11 @@
-basePath: /postService/
+basePath: /post-service/
 definitions:
   bff.CreatePostResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  bff.DeletePostResponse:
     properties:
       message:
         type: string
@@ -10,27 +15,52 @@ definitions:
       error:
         type: string
     type: object
+  bff.GetPostResponse:
+    properties:
+      post:
+        $ref: '#/definitions/bff.Post'
+    type: object
+  bff.GetPostsResponse:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      posts:
+        items:
+          $ref: '#/definitions/bff.Post'
+        type: array
+      total:
+        type: integer
+    type: object
+  bff.Image:
+    properties:
+      url:
+        type: string
+      uuid:
+        type: string
+    type: object
   bff.Post:
     properties:
       content:
         type: string
       images:
         items:
-          type: string
+          $ref: '#/definitions/bff.Image'
         type: array
       title:
+        type: string
+      user_uuid:
         type: string
       uuid:
         type: string
     type: object
-  bff.PostsResponse:
+  bff.UpdatePostResponse:
     properties:
-      posts:
-        items:
-          $ref: '#/definitions/bff.Post'
-        type: array
+      message:
+        type: string
     type: object
-host: localhost:8080
+host: localhost:5001
 info:
   contact: {}
   description: API сервиса постов для платформы SwiftTalk
@@ -48,7 +78,7 @@ paths:
         "200":
           description: Успешный ответ с списком постов
           schema:
-            $ref: '#/definitions/bff.PostsResponse'
+            $ref: '#/definitions/bff.GetPostsResponse'
         "400":
           description: Ошибка запроса
           schema:
@@ -95,6 +125,113 @@ paths:
           schema:
             $ref: '#/definitions/bff.ErrorResponse'
       summary: Создать новый пост
+      tags:
+      - posts
+  /post/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить пост по его идентификатору
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное удаление поста
+          schema:
+            $ref: '#/definitions/bff.DeletePostResponse'
+        "400":
+          description: Ошибка запроса
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+      summary: Удалить пост по ID
+      tags:
+      - posts
+    get:
+      consumes:
+      - application/json
+      description: Получить детальную информацию о посте по его идентификатору
+      parameters:
+      - description: ID поста
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ с информацией о посте
+          schema:
+            $ref: '#/definitions/bff.GetPostResponse'
+        "400":
+          description: Ошибка запроса
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+        "404":
+          description: Пост не найден
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+      summary: Получить пост по ID
+      tags:
+      - posts
+    put:
+      consumes:
+      - multipart/form-data
+      description: Обновить пост по его идентификатору
+      parameters:
+      - description: ID поста
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Заголовок поста
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Содержание поста
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: Изображения (множественная загрузка)
+        in: formData
+        name: images
+        type: file
+      - description: Удаленные изображения
+        in: formData
+        name: deleted_images
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное обновление поста
+          schema:
+            $ref: '#/definitions/bff.UpdatePostResponse'
+        "400":
+          description: Ошибка в параметрах запроса
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/bff.ErrorResponse'
+      summary: Обновить пост по ID
       tags:
       - posts
 swagger: "2.0"
