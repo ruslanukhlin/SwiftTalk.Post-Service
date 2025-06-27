@@ -133,25 +133,25 @@ func (a *PostApp) DeletePost(accessToken, uuid string) error {
 
 type Images struct {
 	Readers []io.Reader
-	Uuids   []string
 	Urls    []string
 	Domain  []*post.Image
 }
 
 func (a *PostApp) getImages(images [][]byte) *Images {
 	imagesReaders := make([]io.Reader, len(images))
-	imagesUuids := make([]string, len(images))
 	imagesUrls := make([]string, len(images))
 	imagesDomain := make([]*post.Image, len(images))
 	for i, image := range images {
-		imagesUuids[i] = uuid.New().String()
-		imagesUrls[i] = a.cfg.S3.BucketFolder + "/" + imagesUuids[i]
-		imagesDomain[i] = post.NewImage(imagesUuids[i], a.cfg.S3.BucketUrl+"/"+imagesUrls[i])
+		newUuid := uuid.New().String()
+		pathToS3 := a.cfg.S3.BucketUrl + newUuid
+		pathToBucket := a.cfg.S3.BucketFolder + "/" + newUuid
+
+		imagesUrls[i] = pathToBucket
+		imagesDomain[i] = post.NewImage(newUuid, pathToS3)
 		imagesReaders[i] = bytes.NewReader(image)
 	}
 	return &Images{
 		Readers: imagesReaders,
-		Uuids:   imagesUuids,
 		Urls:    imagesUrls,
 		Domain:  imagesDomain,
 	}

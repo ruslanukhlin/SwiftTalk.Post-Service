@@ -3,7 +3,6 @@ package bff
 import (
 	"encoding/json"
 	"strconv"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -48,6 +47,8 @@ func (h *Handler) GetPost(c *fiber.Ctx) error {
 // @Description Получить список всех постов
 // @Tags posts
 // @Accept json
+// @Param page query int true "Номер страницы"
+// @Param limit query int true "Количество постов на странице"
 // @Produce json
 // @Success 200 {object} GetPostsResponse "Успешный ответ с списком постов"
 // @Failure 400 {object} ErrorResponse "Ошибка запроса"
@@ -105,8 +106,6 @@ func (h *Handler) CreatePost(c *fiber.Ctx) error {
 		})
 	}
 
-	accessToken = strings.Replace(accessToken, "Bearer ", "", 1)
-
 	title := c.FormValue("title")
 	content := c.FormValue("content")
 
@@ -158,8 +157,6 @@ func (h *Handler) UpdatePost(c *fiber.Ctx) error {
 			"error": "Неверный формат данных",
 		})
 	}
-
-	accessToken = strings.Replace(accessToken, "Bearer ", "", 1)
 
 	postId := c.Params("uuid")
 	title := c.FormValue("title")
@@ -220,7 +217,6 @@ func (h *Handler) DeletePost(c *fiber.Ctx) error {
 		})
 	}
 
-	accessToken = strings.Replace(accessToken, "Bearer ", "", 1)
 	postId := c.Params("uuid")
 
 	err := h.postService.DeletePost(c, accessToken, postId)

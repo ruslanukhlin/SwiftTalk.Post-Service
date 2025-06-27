@@ -20,6 +20,7 @@ WORKDIR /app
 
 COPY --from=build /build/.env.prod /app/.env
 
+COPY --from=build /build/docs /app/docs
 COPY --from=build /build/cmd/grpc/post-service-grpc /app/post-service-grpc
 COPY --from=build /build/cmd/bff/post-service-bff /app/post-service-bff
 

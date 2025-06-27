@@ -72,6 +72,17 @@ paths:
       consumes:
       - application/json
       description: Получить список всех постов
+      parameters:
+      - description: Номер страницы
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Количество постов на странице
+        in: query
+        name: limit
+        required: true
+        type: integer
       produces:
       - application/json
       responses:

@@ -14,6 +14,26 @@
                     "posts"
                 ],
                 "summary": "Получить список постов",
+                "parameters": [
+                    {
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Количество постов на странице",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Успешный ответ с списком постов",
