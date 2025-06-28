@@ -11,6 +11,7 @@ services:
       - post-service-postgres
     networks:
       - post-service-network
+      - auth-service-network
   post-service-postgres:
     image: postgres:17
     env_file: .env.prod
@@ -30,4 +31,6 @@ volumes:
 
 networks:
   post-service-network:
+    driver: bridge
+  auth-service-network:
     driver: bridge

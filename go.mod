@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/ruslanukhlin/SwiftTalk.Common v0.0.3
+	github.com/ruslanukhlin/SwiftTalk.Common v0.0.4
 	golang.org/x/text v0.26.0 // indirect; indirectgo clean -modcache
 )
 

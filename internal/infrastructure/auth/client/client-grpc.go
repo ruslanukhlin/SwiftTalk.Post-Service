@@ -2,7 +2,9 @@ package clientGRPC
 
 import (
 	"context"
-	"strings"
+	"log"
+
+	"google.golang.org/grpc/metadata"
 
 	pb "github.com/ruslanukhlin/SwiftTalk.Common/gen/auth"
 	"github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/auth"
@@ -23,10 +25,12 @@ func (c *ClientGRPC) VerifyToken(accessToken string) (*auth.VerifyTokenOutput, e
 		return nil, auth.ErrInvalidToken
 	}
 
-	response, err := c.authClient.VerifyToken(context.Background(), &pb.VerifyTokenRequest{
-		AccessToken: strings.TrimPrefix(accessToken, "Bearer "),
-	})
+	md := metadata.New(map[string]string{"authorization": accessToken})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	response, err := c.authClient.VerifyToken(ctx, &pb.VerifyTokenRequest{})
 	if err != nil {
+		log.Println("VerifyToken error:", err)
 		return nil, auth.ErrVerifyToken
 	}
 
