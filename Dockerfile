@@ -18,6 +18,9 @@ FROM alpine
 
 WORKDIR /app
 
+RUN mkdir -p /root/.aws
+COPY --from=build /build/.aws/* /root/.aws/
+
 COPY --from=build /build/.env.prod /app/.env
 
 COPY --from=build /build/docs /app/docs

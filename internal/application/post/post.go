@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"log"
 
 	"github.com/google/uuid"
 	s3 "github.com/ruslanukhlin/SwiftTalk.Common/core/s3"
@@ -41,6 +42,7 @@ func (a *PostApp) CreatePost(input *post.CreatePostInput) error {
 
 	err = a.s3.UploadFiles(context.Background(), images.Readers, images.Urls)
 	if err != nil {
+		log.Printf("Ошибка при загрузке изображений: %v", err)
 		return err
 	}
 
