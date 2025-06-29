@@ -2,7 +2,6 @@ package postGRPC
 
 import (
 	"context"
-	"errors"
 
 	pb "github.com/ruslanukhlin/SwiftTalk.Common/gen/post"
 	application "github.com/ruslanukhlin/SwiftTalk.post-service/internal/application/post"
@@ -21,6 +20,7 @@ var (
 	ErrPostNotFound  = status.Error(codes.NotFound, domain.ErrPostNotFound.Error())
 	ErrUnauthorized  = status.Error(codes.Unauthenticated, auth.ErrInvalidToken.Error())
 	ErrUserNotAuthor = status.Error(codes.Unauthenticated, auth.ErrUserNotAuthor.Error())
+	ErrInvalidUUID   = status.Error(codes.InvalidArgument, domain.ErrInvalidUUID.Error())
 	ErrInternal      = status.Error(codes.Internal, "Внутренняя ошибка сервера")
 )
 
@@ -64,6 +64,8 @@ func (h *PostGRPCHandler) CreatePost(ctx context.Context, req *pb.CreatePostRequ
 			return nil, ErrLongContent
 		case auth.ErrInvalidToken:
 			return nil, ErrUnauthorized
+		case domain.ErrInvalidUUID:
+			return nil, ErrInvalidUUID
 		default:
 			return nil, ErrInternal
 		}
@@ -101,10 +103,14 @@ func (h *PostGRPCHandler) GetPosts(ctx context.Context, req *pb.GetPostsRequest)
 func (h *PostGRPCHandler) GetPost(ctx context.Context, req *pb.GetPostRequest) (*pb.GetPostResponse, error) {
 	post, err := h.postApp.GetPostByUUID(req.Uuid)
 	if err != nil {
-		if errors.Is(err, domain.ErrPostNotFound) {
+		switch err {
+		case domain.ErrPostNotFound:
 			return nil, ErrPostNotFound
+		case domain.ErrInvalidUUID:
+			return nil, ErrInvalidUUID
+		default:
+			return nil, ErrInternal
 		}
-		return nil, ErrInternal
 	}
 
 	imagesPb := getImages(post.Images)
@@ -137,6 +143,8 @@ func (h *PostGRPCHandler) DeletePost(ctx context.Context, req *pb.DeletePostRequ
 			return nil, ErrPostNotFound
 		case auth.ErrUserNotAuthor:
 			return nil, ErrUserNotAuthor
+		case domain.ErrInvalidUUID:
+			return nil, ErrInvalidUUID
 		default:
 			return nil, ErrInternal
 		}
@@ -176,6 +184,8 @@ func (h *PostGRPCHandler) UpdatePost(ctx context.Context, req *pb.UpdatePostRequ
 			return nil, ErrLongContent
 		case auth.ErrUserNotAuthor:
 			return nil, ErrUserNotAuthor
+		case domain.ErrInvalidUUID:
+			return nil, ErrInvalidUUID
 		default:
 			return nil, ErrInternal
 		}

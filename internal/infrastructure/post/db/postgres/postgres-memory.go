@@ -3,6 +3,7 @@ package postgres
 import (
 	"errors"
 
+	"github.com/google/uuid"
 	domain "github.com/ruslanukhlin/SwiftTalk.post-service/internal/domain/post"
 	"gorm.io/gorm"
 )
@@ -70,7 +71,18 @@ func (r *PostgresMemoryRepository) FindAll(page, limit int64) (*domain.GetPostsR
 	}, nil
 }
 
+// isValidUUID проверяет валидность UUID
+func isValidUUID(uuidStr string) bool {
+	_, err := uuid.Parse(uuidStr)
+	return err == nil
+}
+
 func (r *PostgresMemoryRepository) FindByUUID(uuid string) (*domain.Post, error) {
+	// Валидация UUID
+	if !isValidUUID(uuid) {
+		return nil, domain.ErrInvalidUUID
+	}
+
 	var post Post
 	if err := r.db.Preload("Images").Where("uuid = ?", uuid).First(&post).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -93,6 +105,11 @@ func (r *PostgresMemoryRepository) FindByUUID(uuid string) (*domain.Post, error)
 }
 
 func (r *PostgresMemoryRepository) Update(post *domain.Post) error {
+	// Валидация UUID
+	if !isValidUUID(post.UUID) {
+		return domain.ErrInvalidUUID
+	}
+
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var postDb Post
 		if err := tx.Where("uuid = ?", post.UUID).First(&postDb).Error; err != nil {
@@ -158,6 +175,11 @@ func (r *PostgresMemoryRepository) Update(post *domain.Post) error {
 }
 
 func (r *PostgresMemoryRepository) Delete(uuid string) error {
+	// Валидация UUID
+	if !isValidUUID(uuid) {
+		return domain.ErrInvalidUUID
+	}
+
 	err := r.db.Delete(&Post{UUID: uuid}).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -170,6 +192,18 @@ func (r *PostgresMemoryRepository) Delete(uuid string) error {
 }
 
 func (r *PostgresMemoryRepository) DeleteImages(postUUID string, imagesUuids []string) error {
+	// Валидация UUID поста
+	if !isValidUUID(postUUID) {
+		return domain.ErrInvalidUUID
+	}
+
+	// Валидация UUID изображений
+	for _, imgUUID := range imagesUuids {
+		if !isValidUUID(imgUUID) {
+			return domain.ErrInvalidUUID
+		}
+	}
+
 	return r.db.Where("post_uuid = ? AND uuid IN (?)", postUUID, imagesUuids).Delete(&Image{}).Error
 }
 
